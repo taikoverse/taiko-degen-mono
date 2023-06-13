@@ -232,6 +232,13 @@
     } catch (error) {
       console.error(error);
 
+      if (
+        [error.code, error.cause?.code].includes(ethers.errors.ACTION_REJECTED)
+      ) {
+        warningToast(`Transaction has been rejected.`);
+        return;
+      }
+
       Sentry.captureException(error, {
         extra: {
           token: _token.symbol,
@@ -251,10 +258,6 @@
           `${headerError}Click ${htmlLink} to see more details on the explorer.`,
           true, // dismissible
         );
-      } else if (
-        [error.code, error.cause?.code].includes(ethers.errors.ACTION_REJECTED)
-      ) {
-        warningToast(`Transaction has been rejected.`);
       } else {
         errorToast(`${headerError}Try again later.`);
       }
@@ -428,13 +431,24 @@
     } catch (error) {
       console.error(error);
 
-      // Extra information we're gonna send to Sentry
-      const extra = {
-        token: _token.symbol,
-        srcChain: $srcChain.id,
-      };
+      if (
+        [error.code, error.cause?.code].includes(ethers.errors.ACTION_REJECTED)
+      ) {
+        warningToast(`Transaction has been rejected.`);
+        return;
+      }
 
       const isBll = _token.symbol.toLocaleLowerCase() === 'bll';
+
+      // No need to capture this error if BLL is the one failing,
+      // otherwise we're gonna spam Sentry with expected errors
+      !isBll &&
+        Sentry.captureException(error, {
+          extra: {
+            token: _token.symbol,
+            srcChain: $srcChain.id,
+          },
+        });
 
       const headerError = '<strong>Failed to bridge funds</strong><br />';
       const noteError = isBll
@@ -442,24 +456,13 @@
         : '';
 
       if (error.cause?.status === 0) {
-        // No need to capture this error if BLL is the one failing,
-        // otherwise we're gonna spam Sentry with expected errors
-        !isBll && Sentry.captureException(error, { extra });
-
         const explorerUrl = `${$srcChain.explorerUrl}/tx/${error.cause.transactionHash}`;
         const htmlLink = `<a href="${explorerUrl}" target="_blank"><b><u>here</u></b></a>`;
         errorToast(
           `${headerError}Click ${htmlLink} to see more details on the explorer.${noteError}`,
           true, // dismissible
         );
-      } else if (
-        [error.code, error.cause?.code].includes(ethers.errors.ACTION_REJECTED)
-      ) {
-        warningToast(`Transaction has been rejected.`);
       } else {
-        // Do not capture if it's BLL. It's expected.
-        !isBll && Sentry.captureException(error, { extra });
-
         errorToast(`${headerError}Try again later.${noteError}`);
       }
     }

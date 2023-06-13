@@ -175,6 +175,14 @@
     } catch (error) {
       console.error(error);
 
+      if (
+        error instanceof UserRejectedRequestError ||
+        [error.code, error.cause?.code].includes(errors.ACTION_REJECTED)
+      ) {
+        warningToast(`Transaction has been rejected.`);
+        return;
+      }
+
       Sentry.captureException(error, {
         extra: {
           srcChain: $srcChain.id,
@@ -203,11 +211,6 @@
           `${headerError}<br />Click ${htmlLink} to see more details on the explorer.`,
           true, // dismissible
         );
-      } else if (
-        error instanceof UserRejectedRequestError ||
-        [error.code, error.cause?.code].includes(errors.ACTION_REJECTED)
-      ) {
-        warningToast(`Transaction has been rejected.`);
       } else if (error.cause === 'pending_tx') {
         warningToast(
           'You have pending transactions. Please wait for them to complete.',
@@ -277,6 +280,14 @@
     } catch (error) {
       console.error(error);
 
+      if (
+        error instanceof UserRejectedRequestError ||
+        [error.code, error.cause?.code].includes(errors.ACTION_REJECTED)
+      ) {
+        warningToast(`Transaction has been rejected.`);
+        return;
+      }
+
       Sentry.captureException(error, {
         extra: {
           srcChain: $srcChain.id,
@@ -293,10 +304,6 @@
           `${headerError}<br />Click ${htmlLink} to see more details on the explorer.`,
           true, // dismissible
         );
-      } else if (
-        [error.code, error.cause?.code].includes(errors.ACTION_REJECTED)
-      ) {
-        warningToast(`Transaction has been rejected.`);
       } else if (error.cause === 'pending_tx') {
         warningToast(
           'You have pending transactions. Please wait for them to complete.',
