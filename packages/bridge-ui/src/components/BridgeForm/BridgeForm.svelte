@@ -70,33 +70,27 @@
     if (signer && token) {
       computingTokenBalance = true;
 
-      if (isETH(token)) {
-        const userBalance = await signer.getBalance('latest');
-        tokenBalance = ethers.utils.formatEther(userBalance);
+      try {
+        if (isETH(token)) {
+          const userBalance = await signer.getBalance('latest');
+          tokenBalance = ethers.utils.formatEther(userBalance);
 
-        log('ETH balance:', tokenBalance);
-      } else {
-        let address: string;
+          log('ETH balance:', tokenBalance);
+        } else {
+          let address: string;
 
-        try {
           address = await getAddressForToken(
             token,
             $srcChain,
             $destChain,
             signer,
           );
-        } catch (error) {
-          console.error(error);
-          tokenBalance = '0.0';
-          return;
-        }
 
-        if (address == ethers.constants.AddressZero) {
-          tokenBalance = '0.0';
-          return;
-        }
+          if (address == ethers.constants.AddressZero) {
+            tokenBalance = '0.0';
+            return;
+          }
 
-        try {
           const tokenContract = new Contract(address, erc20ABI, signer);
 
           const balance = await tokenContract.balanceOf(
@@ -106,15 +100,21 @@
           tokenBalance = ethers.utils.formatUnits(balance, token.decimals);
 
           log(`${token.symbol} balance is ${tokenBalance}`);
-        } catch (error) {
-          console.error(error);
-
-          tokenBalance = '0.0';
-
-          throw Error(`failed to get balance for ${token.symbol}`, {
-            cause: error,
-          });
         }
+      } catch (error) {
+        console.error(error);
+
+        tokenBalance = '0.0';
+
+        Sentry.captureException(error, {
+          extra: {
+            token: token.symbol,
+          },
+        });
+
+        errorToast(`Failed to get balance for ${token.symbol}.`);
+      } finally {
+        computingTokenBalance = false;
       }
     }
   }
@@ -130,31 +130,44 @@
 
     computingAllowance = true;
 
-    const address = await getAddressForToken(
-      token,
-      srcChain,
-      $destChain,
-      signer,
-    );
+    try {
+      const address = await getAddressForToken(
+        token,
+        srcChain,
+        $destChain,
+        signer,
+      );
 
-    const parsedAmount = ethers.utils.parseUnits(amount, token.decimals);
+      const parsedAmount = ethers.utils.parseUnits(amount, token.decimals);
 
-    log(
-      `Checking allowance for token ${
-        token.symbol
-      } and amount ${parsedAmount.toString()}`,
-    );
+      log(
+        `Checking allowance for token ${
+          token.symbol
+        } and amount ${parsedAmount.toString()}`,
+      );
 
-    const isRequired = await $activeBridge.requiresAllowance({
-      amount: parsedAmount,
-      signer: signer,
-      contractAddress: address,
-      spenderAddress: tokenVaults[srcChain.id],
-    });
+      requiresAllowance = await $activeBridge.requiresAllowance({
+        amount: parsedAmount,
+        signer: signer,
+        contractAddress: address,
+        spenderAddress: tokenVaults[srcChain.id],
+      });
 
-    log(`Token ${token.symbol} requires allowance? ${isRequired}`);
+      log(`Token ${token.symbol} requires allowance? ${requiresAllowance}`);
+    } catch (error) {
+      console.error(error);
 
-    return isRequired;
+      requiresAllowance = false;
+
+      Sentry.captureException(error, {
+        extra: {
+          token: token.symbol,
+          srcChain: srcChain.id,
+        },
+      });
+    } finally {
+      computingAllowance = false;
+    }
   }
 
   async function checkActionDisabled(
@@ -175,20 +188,44 @@
     )
       return true;
 
-    const isCorrectChain = await isOnCorrectChain(signer, srcChain.id);
-    if (!isCorrectChain) return true;
+    try {
+      let isDisabled = false;
 
-    if (
-      isNaN(parseFloat(amount)) ||
-      ethers.utils.parseUnits(amount).eq(BigNumber.from(0))
-    )
-      return true;
+      const isCorrectChain = await isOnCorrectChain(signer, srcChain.id);
 
-    const parsedBalance = ethers.utils.parseUnits(tokenBalance, token.decimals);
-    const parsedAmount = ethers.utils.parseUnits(amount, token.decimals);
-    if (BigNumber.from(parsedBalance).lt(parsedAmount)) return true;
+      if (!isCorrectChain) {
+        isDisabled = true;
+      }
 
-    return false;
+      if (
+        isNaN(parseFloat(amount)) ||
+        ethers.utils.parseUnits(amount).eq(BigNumber.from(0))
+      ) {
+        isDisabled = true;
+      }
+
+      const parsedBalance = ethers.utils.parseUnits(
+        tokenBalance,
+        token.decimals,
+      );
+
+      const parsedAmount = ethers.utils.parseUnits(amount, token.decimals);
+
+      if (BigNumber.from(parsedBalance).lt(parsedAmount)) {
+        isDisabled = true;
+      }
+
+      actionDisabled = isDisabled;
+    } catch (error) {
+      console.error(error);
+
+      Sentry.captureException(error, {
+        extra: {
+          token: token.symbol,
+          srcChain: srcChain.id,
+        },
+      });
+    }
   }
 
   // TODO: rethink this function. By passing the token value, we make sure that async
@@ -542,9 +579,7 @@
     showAddToWallet = isERC20(token) && hasInjectedProvider();
   }
 
-  $: updateTokenBalance($signer, $token).finally(() => {
-    computingTokenBalance = false;
-  });
+  $: updateTokenBalance($signer, $token);
 
   $: checkActionDisabled(
     $signer,
@@ -553,19 +588,9 @@
     tokenBalance,
     memoError,
     $srcChain,
-  )
-    .then((disabled) => (actionDisabled = disabled))
-    .catch((error) => console.error(error));
+  );
 
-  $: checkAllowance(amount, $token, $bridgeType, $srcChain, $signer)
-    .then((isRequired) => (requiresAllowance = isRequired))
-    .catch((error) => {
-      console.error(error);
-      requiresAllowance = false;
-    })
-    .finally(() => {
-      computingAllowance = false;
-    });
+  $: checkAllowance(amount, $token, $bridgeType, $srcChain, $signer);
 
   $: amountEntered = Boolean(amount);
 

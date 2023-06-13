@@ -117,6 +117,17 @@
     } catch (error) {
       console.error(error);
 
+      if (error.cause?.code === ethers.errors.ACTION_REJECTED) {
+        warningToast(`Transaction has been rejected.`);
+        return;
+      }
+
+      Sentry.captureException(error, {
+        extra: {
+          token: _token.symbol,
+        },
+      });
+
       const headerError = '<strong>Failed to mint tokens</strong>';
       if (error.cause?.status === 0) {
         const explorerUrl = `${srcChain.explorerUrl}/tx/${error.cause.transactionHash}`;
@@ -125,8 +136,6 @@
           `${headerError}<br />Click ${htmlLink} to see more details on the explorer.`,
           true, // dismissible
         );
-      } else if (error.cause?.code === ethers.errors.ACTION_REJECTED) {
-        warningToast(`Transaction has been rejected.`);
       } else {
         errorToast(`${headerError}<br />Try again later.`);
       }
@@ -146,6 +155,12 @@
       if (error instanceof UserRejectedRequestError) {
         warningToast('Switching network has been rejected.');
       } else {
+        Sentry.captureException(error, {
+          extra: {
+            chainTo: L1_CHAIN_ID,
+          },
+        });
+
         errorToast('Failed to switch network.');
       }
     } finally {
