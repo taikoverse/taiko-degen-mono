@@ -11,7 +11,7 @@ import {TaikoData} from "../L1/TaikoData.sol";
 library TaikoConfig {
     function getConfig() internal pure returns (TaikoData.Config memory) {
         return TaikoData.Config({
-            chainId: 167005,
+            chainId: 1670051,
             // Two weeks if avg block time is 3 seconds
             maxNumProposedBlocks: 403200,
             ringBufferSize: 403200 + 10,

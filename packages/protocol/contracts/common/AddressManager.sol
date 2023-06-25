@@ -50,10 +50,10 @@ contract AddressManager is OwnableUpgradeable, IAddressManager {
         virtual
         onlyOwner
     {
-        // This is to prevent using the owner as named address
-        if (newAddress.code.length == 0 && newAddress == msg.sender) {
-            revert EOAOwnerAddressNotAllowed();
-        }
+        // // This is to prevent using the owner as named address
+        // if (newAddress.code.length == 0 && newAddress == msg.sender) {
+        //     revert EOAOwnerAddressNotAllowed();
+        // }
 
         address oldAddress = addresses[domain][name];
         addresses[domain][name] = newAddress;

@@ -64,7 +64,7 @@ contract TaikoL1 is EssentialContract, ICrossChainSync, TaikoEvents, TaikoErrors
     }
 
     /**
-     * Propose a Taiko L2 block.
+     * Propose a Taiko L2 block. For taiko degen chain, only proposeBlock is used.
      *
      * @param input An abi-encoded BlockMetadataInput that the actual L2
      *        block header must satisfy.
@@ -87,14 +87,14 @@ contract TaikoL1 is EssentialContract, ICrossChainSync, TaikoEvents, TaikoErrors
             input: abi.decode(input, (TaikoData.BlockMetadataInput)),
             txList: txList
         });
-        if (config.maxVerificationsPerTx > 0) {
-            LibVerifying.verifyBlocks({
-                state: state,
-                config: config,
-                resolver: AddressResolver(this),
-                maxBlocks: config.maxVerificationsPerTx
-            });
-        }
+        // if (config.maxVerificationsPerTx > 0) {
+        //     LibVerifying.verifyBlocks({
+        //         state: state,
+        //         config: config,
+        //         resolver: AddressResolver(this),
+        //         maxBlocks: config.maxVerificationsPerTx
+        //     });
+        // }
     }
 
     /**
@@ -193,7 +193,8 @@ contract TaikoL1 is EssentialContract, ICrossChainSync, TaikoEvents, TaikoErrors
     }
 
     function getBlockFee() public view returns (uint64) {
-        return state.blockFee;
+        // return state.blockFee;
+        return 0;
     }
 
     function getProofReward(uint64 proofTime) public view returns (uint64) {

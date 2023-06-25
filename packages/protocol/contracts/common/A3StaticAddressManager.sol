@@ -46,7 +46,7 @@ contract A3StaticAddressManager is AddressManager {
             if (name == bytes32(uint256(0x1000000))) {
                 addr = address(0xd46eb8cF2b47cd99bdb1dD8C76EEc55ac6eb930E);
             }
-        } else if (domain == 167005) {
+        } else if (domain == 1670051) {
             if (name == "taiko") addr = address(0x0000777700000000000000000000000000000001);
             if (name == "token_vault") addr = address(0x0000777700000000000000000000000000000002);
             if (name == "bridge") addr = address(0x0000777700000000000000000000000000000004);

@@ -144,41 +144,41 @@ library LibVerifying {
         uint24 fcId,
         address systemProver
     ) private {
-        uint64 proofTime;
+        // uint64 proofTime;
+        // unchecked {
+        //     proofTime = uint64(fc.provenAt - blk.proposedAt);
+        // }
+
+        // uint64 reward = LibTokenomics.getProofReward(state, proofTime);
+
+        // (state.proofTimeIssued, state.blockFee) =
+        //     LibTokenomics.getNewBlockFeeAndProofTimeIssued(state, proofTime);
+
         unchecked {
-            proofTime = uint64(fc.provenAt - blk.proposedAt);
-        }
-
-        uint64 reward = LibTokenomics.getProofReward(state, proofTime);
-
-        (state.proofTimeIssued, state.blockFee) =
-            LibTokenomics.getNewBlockFeeAndProofTimeIssued(state, proofTime);
-
-        unchecked {
-            state.accBlockFees -= reward;
-            state.accProposedAt -= blk.proposedAt;
+            // state.accBlockFees -= reward;
+            // state.accProposedAt -= blk.proposedAt;
             ++state.lastVerifiedBlockId;
         }
 
-        // reward the prover
-        if (reward != 0) {
-            address prover = fc.prover != address(1) ? fc.prover : systemProver;
+        // // reward the prover
+        // if (reward != 0) {
+        //     address prover = fc.prover != address(1) ? fc.prover : systemProver;
 
-            // systemProver may become address(0) after a block is proven
-            if (prover != address(0)) {
-                if (state.taikoTokenBalances[prover] == 0) {
-                    // Reduce refund to 1 wei as a penalty if the proposer
-                    // has 0 TKO outstanding balance.
-                    state.taikoTokenBalances[prover] = 1;
-                } else {
-                    state.taikoTokenBalances[prover] += reward;
-                }
-            }
-        }
+        //     // systemProver may become address(0) after a block is proven
+        //     if (prover != address(0)) {
+        //         if (state.taikoTokenBalances[prover] == 0) {
+        //             // Reduce refund to 1 wei as a penalty if the proposer
+        //             // has 0 TKO outstanding balance.
+        //             state.taikoTokenBalances[prover] = 1;
+        //         } else {
+        //             state.taikoTokenBalances[prover] += reward;
+        //         }
+        //     }
+        // }
 
         blk.nextForkChoiceId = 1;
         blk.verifiedForkChoiceId = fcId;
 
-        emit BlockVerified(blk.blockId, fc.blockHash, reward);
+        emit BlockVerified(blk.blockId, fc.blockHash, 0);
     }
 }
