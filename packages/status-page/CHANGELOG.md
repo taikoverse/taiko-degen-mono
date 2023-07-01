@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/taikoxyz/taiko-mono/compare/status-page-v0.11.0...status-page-v0.11.1) (2023-07-01)
+
+
+### Bug Fixes
+
+* **status-page:** proposer title ([#14058](https://github.com/taikoxyz/taiko-mono/issues/14058)) ([412ba70](https://github.com/taikoxyz/taiko-mono/commit/412ba70b7f313c4e81d3b773733e8940d16df6e1))
+
 ## [0.11.0](https://github.com/taikoxyz/taiko-mono/compare/status-page-v0.10.0...status-page-v0.11.0) (2023-06-26)
 
 

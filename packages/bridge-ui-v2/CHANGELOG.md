@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/taikoxyz/taiko-mono/compare/bridge-ui-v2-v2.1.0...bridge-ui-v2-v2.2.0) (2023-07-01)
+
+
+### Features
+
+* **bridge-ui-v2:** bridge form ([#14056](https://github.com/taikoxyz/taiko-mono/issues/14056)) ([b39b328](https://github.com/taikoxyz/taiko-mono/commit/b39b328cc602fc9ea05fcd4551b40cd91a6efe37))
+
 ## [2.1.0](https://github.com/taikoxyz/taiko-mono/compare/bridge-ui-v2-v2.0.0...bridge-ui-v2-v2.1.0) (2023-06-26)
 
 ### Features
