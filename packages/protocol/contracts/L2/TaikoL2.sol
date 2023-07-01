@@ -162,16 +162,16 @@ contract TaikoL2 is EssentialContract, TaikoL2Signer, ICrossChainSync {
     function anchor(bytes32 l1Hash, bytes32 l1SignalRoot, uint64 l1Height, uint64 parentGasUsed)
         external
     {
-        if (msg.sender != GOLDEN_TOUCH_ADDRESS) revert L2_INVALID_SENDER();
+        // if (msg.sender != GOLDEN_TOUCH_ADDRESS) revert L2_INVALID_SENDER();
 
         uint256 parentHeight = block.number - 1;
         bytes32 parentHash = blockhash(parentHeight);
 
         (bytes32 prevPIH, bytes32 currPIH) = _calcPublicInputHash(parentHeight);
 
-        if (publicInputHash != prevPIH) {
-            revert L2_PUBLIC_INPUT_HASH_MISMATCH(publicInputHash, prevPIH);
-        }
+        // if (publicInputHash != prevPIH) {
+        //     revert L2_PUBLIC_INPUT_HASH_MISMATCH(publicInputHash, prevPIH);
+        // }
 
         // replace the oldest block hash with the parent's blockhash
         publicInputHash = currPIH;
@@ -194,9 +194,9 @@ contract TaikoL2 is EssentialContract, TaikoL2Signer, ICrossChainSync {
         // On L2, basefee is not burnt, but sent to a treasury instead.
         // The circuits will need to verify the basefee recipient is the designated
         // address.
-        if (block.basefee != basefee) {
-            revert L2_BASEFEE_MISMATCH(uint64(basefee), uint64(block.basefee));
-        }
+        // if (block.basefee != basefee) {
+        //     revert L2_BASEFEE_MISMATCH(uint64(basefee), uint64(block.basefee));
+        // }
 
         parentTimestamp = uint64(block.timestamp);
 
