@@ -20,7 +20,8 @@ library TaikoConfig {
             maxVerificationsPerTx: 10,
             // Set it to 6M, since its the upper limit of the Alpha-3
             // testnet's circuits.
-            blockMaxGasLimit: 6000000,
+            // blockMaxGasLimit: 6000000,
+            blockMaxGasLimit: 300000000, // set to 3B for degen chain
             // Set it to 79  (+1 TaikoL2.anchor transaction = 80),
             // and 80 is the upper limit of the Alpha-3 testnet's circuits.
             maxTransactionsPerBlock: 79,
